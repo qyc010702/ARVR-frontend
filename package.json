@@ -1,0 +1,65 @@
+{
+  "name": "datalog_frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@ant-design/icons": "^5.2.6",
+    "@ant-design/pro-layout": "^7.17.10",
+    "@rangermauve/fetch-event-source": "^1.0.3",
+    "@react-spring/three": "^9.7.3",
+    "@react-three/drei": "^9.105.6",
+    "@react-three/fiber": "^8.16.6",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "antd": "^5.10.2",
+    "aphrodite": "^2.4.0",
+    "axios": "^1.6.2",
+    "d3": "^7.8.5",
+    "echarts": "^5.5.0",
+    "echarts-for-react": "^3.0.2",
+    "event-source-polyfill": "^1.0.31",
+    "konva": "^9.3.9",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-konva": "^18.2.10",
+    "react-overlays": "^5.2.1",
+    "react-router-dom": "^6.22.1",
+    "react-scripts": "5.0.1",
+    "react-unity-webgl": "^9.5.2",
+    "react-vis": "^1.12.1",
+    "three": "^0.164.1",
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
+  },
+  "overrides": {
+    "react-vis": {
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0"
+    }
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
