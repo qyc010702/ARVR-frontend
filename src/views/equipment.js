@@ -16,6 +16,7 @@ class DeviceListPage extends Component {
             newEquipment:{
                 name:"",
                 model:"",
+                location:""
             },
             showModal: false,
             selectedDeviceId: null,
@@ -33,8 +34,9 @@ class DeviceListPage extends Component {
     fetchModels=()=>{
         axios.get('http://localhost:8081/equipment/allEquipments')
             .then(response => {
+                console.log(response.data)
                 this.setState({
-                    devices: response.data.data,
+                    devices: response.data
                 });
             })
         axios.get('http://localhost:8081/model/allModels')
@@ -79,6 +81,10 @@ class DeviceListPage extends Component {
         });
     };
 
+    handleDeleteEquipment=(record)=>{
+        axios.delete(`http://localhost:8081/equipment/${record.id}`).then(this.fetchModels)
+    }
+
     handleAddEquipment = ()=>{
         axios.post('http://localhost:8081/equipment/create', this.state.newEquipment)
             .then(response => {
@@ -90,7 +96,7 @@ class DeviceListPage extends Component {
                         status:'',
                         person:''
                     },
-                    modalVisible: false
+                    equipmentVisible: false
                 });
                 this.fetchModels()
             })
@@ -110,13 +116,17 @@ class DeviceListPage extends Component {
             { title: '模型', dataIndex: 'model', key: 'model' },
             { title: '入库日期', dataIndex: 'inTime', key: 'inTime' },
             { title: '状态', dataIndex: 'status', key: 'status' },
+            { title: '点检区域', dataIndex: 'location', key: 'location' },
             { title: '下次检查日期', dataIndex: 'nextTime', key: 'nextTime' },
             {
                 title: '操作',
                 dataIndex: '',
                 key: 'action',
                 render: (text, record) => (
-                    <Button onClick={() => this.setState({ showModal: true, selectedDeviceId: record.id })}>绑定</Button>
+                    <div>
+                        <Button onClick={() => this.setState({ showModal: true, selectedDeviceId: record.id })}>绑定</Button>
+                        <Button onClick={() => this.handleDeleteEquipment(record)}>删除</Button>
+                    </div>
                 ),
             },
         ];
@@ -167,6 +177,18 @@ class DeviceListPage extends Component {
                                 style={{ width: '100%' }}
                             >
                                 {models.map((model, index) => <Option value={model.name}>{model.name}</Option>)}
+                            </Select>
+                        </Col>
+                        <Col span={8}>
+                            <label style={{ display: 'block', marginBottom: 8 }}>区域</label>
+                            <Select
+                                placeholder="选择区域"
+                                onChange={(e) => this.handleInputChange(e, 'location')}
+                                style={{ width: '100%' }}
+                            >
+                                <Option value="罐区">罐区</Option>
+                                <Option value="车间">车间</Option>
+                                <Option value="厂区">厂区</Option>
                             </Select>
                         </Col>
                     </Row>

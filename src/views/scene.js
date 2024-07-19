@@ -53,6 +53,7 @@ class FileUploader extends Component {
                 <div style={{ marginTop: '10px' }}>
                     <Button type="primary" onClick={this.handleUpload}>上传</Button>
                 </div>
+
             </div>
         );
     }

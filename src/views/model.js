@@ -1,66 +1,39 @@
-import { Component } from 'react';
-import { Table, Button, Input, Modal, Space } from 'antd';
+import React, { Component } from 'react';
+import { Card, Button, Input, Modal, Row, Col, Space } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import axios from "axios";
-import pic from '../pic/Pallet.png'
+import axios from 'axios';
+
 class ModelPage extends Component {
     constructor(props) {
         super(props);
         this.state = {
             searchData: [],
-            modalChangeVisible:false,
+            modalChangeVisible: false,
             modalVisible: false,
-            newModel: { name: '', directory: '', detail: '' },
-            changeModel: { id:'',name: '', directory: '', detail: '' },
-            modelData:[],
-            changeId:"",
-            detailVisible:false,
-            selectedModel:[],
+            newModel: { name: '', directory: '', detail: '', image: null },
+            changeModel: { id: '', name: '', directory: '', detail: '', image: null },
+            modelData: [],
+            changeId: '',
         };
     }
 
+
     componentDidMount() {
-        this.fetchModels()
-        // 在组件挂载后，添加按钮点击事件
+        this.fetchModels();
     }
 
-    fetchModels=()=>{
-        axios.get('http://localhost:8081/model/allModels')
-            .then(response => {
-                this.setState({
-                    modelData: response.data.data,
-                });
-            })
-    }
-
-    // 显示模态框
-    showDetailModal = (record) => {
-        this.setState({
-            detailVisible:true,
-            selectedModel:record,
-        })
-    };
-
-    // 点击确认按钮
-    handleDetailOk = () => {
-        this.setState({
-            detailVisible:false,
-        })
-    };
-
-    // 点击取消或关闭按钮
-    handleDetailCancel = () => {
-        this.setState({
-            detailVisible:false,
-        })
+    fetchModels = () => {
+        axios.get('http://localhost:8081/model/allModels').then(response => {
+            console.log(response.data.data)
+            this.setState({
+                modelData: response.data.data,
+            });
+        });
     };
 
     handleSearch = (value) => {
-        console.log(this.state.modelData)
         const { modelData } = this.state;
-        const searchData = modelData.filter(item =>
-            item.name.includes(value) || item.detail.includes(value)
-        );
+        const searchData = modelData.filter(item => item.name.includes(value) || item.detail.includes(value));
         this.setState({ searchData });
     };
 
@@ -72,17 +45,27 @@ class ModelPage extends Component {
         this.setState({ modalVisible: false });
     };
 
-    handleChangeModal =()=>{
+    handleChangeModal = () => {
         this.setState({ modalChangeVisible: false });
-    }
+    };
 
     handleInputChange = (e, key) => {
         const { newModel } = this.state;
         this.setState({
             newModel: {
                 ...newModel,
-                [key]: e.target.value
-            }
+                [key]: e.target.value,
+            },
+        });
+    };
+
+    handleFileChange = (e) => {
+        const { newModel } = this.state;
+        this.setState({
+            newModel: {
+                ...newModel,
+                image: e.target.files[0],
+            },
         });
     };
 
@@ -91,99 +74,71 @@ class ModelPage extends Component {
         this.setState({
             changeModel: {
                 ...changeModel,
-                [key]: e.target.value
-            }
+                [key]: e.target.value,
+            },
         });
     };
 
-    handleEditModel = (record)=>{
+    handleEditModel = (record) => {
         this.setState({
-            modalChangeVisible:true,
-            changeModel:record,
-            changeId:record.id
-        })
-    }
-
-    handleAddModel = () => {
-        const { modelData, newModel } = this.state;
-        const newTableData = [...modelData, { ...newModel, id: Date.now() }];
-        this.setState({ modelData: newTableData, modalVisible: false, newModel: { name: '', tag: '', address: '' } });
-        console.log(newModel)
-        axios.post('http://localhost:8081/model/create', newModel)
-            .then(response => {
-                this.setState({
-                    newModel: { name: '', directory: '', detail: '' },
-                });
-                this.fetchModels()
-            })
-            .catch(error => {
-                this.setState({
-                    loading: false,
-                    error: 'Failed to fetch models'
-                });
-            });
+            modalChangeVisible: true,
+            changeModel: record,
+            changeId: record.id,
+        });
     };
 
-    handleDeleteModel=(record)=>{
-        console.log(record)
-        axios.delete(`http://localhost:8081/model/${record.id}`).then(this.fetchModels)
-    }
+    handleAddModel = () => {
+        const { newModel } = this.state;
+        const formData = new FormData();
+        formData.append('name', newModel.name);
+        formData.append('directory', newModel.directory);
+        formData.append('detail', newModel.detail);
+        formData.append('image', newModel.image);
 
-    handleChangeModel=()=>{
-        const { changeModel } = this.state;
-        axios.put(`http://localhost:8081/model/${this.state.changeId}`, changeModel)
-            .then(response => {
-                this.setState({
-                    changeModel:  { id:'',name: '', directory: '', detail: '' },
-                    modalChangeVisible:false
-                });
-                this.fetchModels()
-            })
-            .catch(error => {
-                this.setState({
-                    loading: false,
-                    error: 'Failed to fetch models'
-                });
+        axios.post('http://localhost:8081/model/create', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        }).then(() => {
+            this.setState({
+                newModel: { name: '', directory: '', detail: '', image: null },
+                modalVisible: false,
             });
-    }
+            this.fetchModels();
+        });
+    };
+
+    handleDeleteModel = (record) => {
+        axios.delete(`http://localhost:8081/model/${record.id}`).then(this.fetchModels);
+    };
+
+    handleChangeModel = () => {
+        const { changeModel, changeId } = this.state;
+        const formData = new FormData();
+        formData.append('name', changeModel.name);
+        formData.append('directory', changeModel.directory);
+        formData.append('detail', changeModel.detail);
+        if (changeModel.image) {
+            formData.append('image', changeModel.image);
+        }
+
+        axios.put(`http://localhost:8081/model/${changeId}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        }).then(() => {
+            this.setState({
+                changeModel: { id: '', name: '', directory: '', detail: '', image: null },
+                modalChangeVisible: false,
+            });
+            this.fetchModels();
+        });
+    };
 
     render() {
-        const { searchData, modelData, modalVisible, newModel ,modalChangeVisible,changeModel,selectedModel} = this.state;
+        const { searchData, modelData, modalVisible, newModel, modalChangeVisible, changeModel } = this.state;
 
-        const columns = [
-            {
-                title: '模型名称',
-                dataIndex: 'name',
-                key: 'name',
-            },
-            {
-                title: '标签',
-                dataIndex: 'detail',
-                key: 'detail',
-            },
-            {
-                title: '时间',
-                dataIndex: 'time',
-                key: 'time',
-            },
-            {
-                title: '地址',
-                dataIndex: 'directory',
-                key: 'directory',
-            },
-            {
-                title: '操作',
-                key: 'action',
-                width: 200, // Set a specific width for the Actions column
-                render: (text, record) => (
-                    <Space size="middle">
-                        <Button onClick={() => this.showDetailModal(record)}>查看</Button>
-                        <Button onClick={() => this.handleEditModel(record)}>修改</Button>
-                        <Button onClick={() => this.handleDeleteModel(record)}>删除</Button>
-                    </Space>
-                ),
-            },
-        ];
+        const data = searchData.length > 0 ? searchData : modelData;
 
         return (
             <div>
@@ -197,16 +152,48 @@ class ModelPage extends Component {
                     <Button onClick={() => this.setState({ searchData: [] })}>还原</Button>
                 </div>
 
-                <Button type="primary" onClick={this.handleOpenModal} style={{ marginBottom: 16 }}>新增</Button>
+                <Button type="primary" onClick={this.handleOpenModal} style={{ marginBottom: 16 }}>
+                    新增
+                </Button>
 
-                <Table
-                    dataSource={searchData.length > 0 ? searchData : this.state.modelData}
-                    columns={columns}
-                    style={{ marginTop: '16px' }}
-                    bordered
-                    size="middle"
-                    pagination={{ pageSize: 10 }}
-                />
+                <Row gutter={[24, 24]}>
+                    {data.map((item) => (
+                        <Col span={8} key={item.id}>
+                            <Card
+                                title={item.name}
+                                extra={
+                                    <Space size="middle">
+                                        <Button onClick={() => this.handleEditModel(item)}>修改</Button>
+                                        <Button onClick={() => this.handleDeleteModel(item)}>删除</Button>
+                                    </Space>
+                                }
+                                cover={
+                                    <img
+                                        alt="模型图片"
+                                        src={`data:image/png;base64,${item.image.data}`}
+                                        style={{ padding: '10px', maxHeight: '200px', objectFit: 'contain' }}
+                                    />
+                                }
+                                bodyStyle={{ padding: '10px' }}
+                                style={{ width: '100%', margin: '0 auto' }}
+                            >
+                                <Row gutter={[16, 16]}>
+                                    <Col span={12}>
+                                        <p><strong>标签：</strong>{item.detail}</p>
+                                        <p><strong>时间：</strong>{item.time}</p>
+                                        <p><strong>地址：</strong>{item.directory}</p>
+                                        <p><strong>所属单位：</strong>沪东造船厂</p>
+                                    </Col>
+                                    <Col span={12}>
+                                        <p><strong>尺寸：</strong>150cm*150cm</p>
+                                        <p><strong>负责人：</strong>葛煜</p>
+                                        <p><strong>模型编号：</strong>{item.id}</p>
+                                    </Col>
+                                </Row>
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
 
                 <Modal
                     title="新增模型"
@@ -214,42 +201,56 @@ class ModelPage extends Component {
                     onCancel={this.handleCloseModal}
                     footer={[
                         <Button key="cancel" onClick={this.handleCloseModal}>取消</Button>,
-                        <Button key="add" type="primary" onClick={this.handleAddModel}>新增</Button>
+                        <Button key="add" type="primary" onClick={this.handleAddModel}>新增</Button>,
                     ]}
                 >
-                    <Input placeholder="模型名称" value={newModel.name} onChange={(e) => this.handleInputChange(e, 'name')} style={{ marginBottom: 8 }} />
-                    <Input placeholder="标签" value={newModel.detail} onChange={(e) => this.handleInputChange(e, 'detail')} style={{ marginBottom: 8 }} />
-                    <Input placeholder="地址" value={newModel.directory} onChange={(e) => this.handleInputChange(e, 'directory')} />
+                    <Input
+                        placeholder="模型名称"
+                        value={newModel.name}
+                        onChange={(e) => this.handleInputChange(e, 'name')}
+                        style={{ marginBottom: 8 }}
+                    />
+                    <Input
+                        placeholder="标签"
+                        value={newModel.detail}
+                        onChange={(e) => this.handleInputChange(e, 'detail')}
+                        style={{ marginBottom: 8 }}
+                    />
+                    <Input
+                        placeholder="地址"
+                        value={newModel.directory}
+                        onChange={(e) => this.handleInputChange(e, 'directory')}
+                    />
+                    <input type="file" onChange={this.handleFileChange} style={{ marginTop: 8 }} />
                 </Modal>
+
                 <Modal
                     title="修改模型"
                     visible={modalChangeVisible}
                     onCancel={this.handleChangeModal}
                     footer={[
                         <Button key="cancel" onClick={this.handleChangeModal}>取消</Button>,
-                        <Button key="add" type="primary" onClick={this.handleChangeModel}>修改</Button>
+                        <Button key="add" type="primary" onClick={this.handleChangeModel}>修改</Button>,
                     ]}
                 >
-                    <Input placeholder="模型名称" value={changeModel.name} onChange={(e) => this.handleInputChange2(e, 'name')} style={{ marginBottom: 8 }} />
-                    <Input placeholder="标签" value={changeModel.detail} onChange={(e) => this.handleInputChange2(e, 'detail')} style={{ marginBottom: 8 }} />
-                    <Input placeholder="地址" value={changeModel.directory} onChange={(e) => this.handleInputChange2(e, 'directory')} />
-                </Modal>
-                <Modal
-                    title="三维模型详情"
-                    visible={this.state.detailVisible}
-                    onOk={this.handleDetailOk}
-                    onCancel={this.handleDetailCancel}
-                    footer={[
-                        <Button key="back" onClick={this.handleDetailCancel}>
-                            返回
-                        </Button>,
-                        <Button key="submit" type="primary" onClick={this.handleDetailOk}>
-                            确认
-                        </Button>,
-                    ]}
-                >
-                    <p><strong>模型名称：</strong>{selectedModel.name}</p>
-                    <img src={pic} alt="模型图片" style={{ width: '100%' }} />
+                    <Input
+                        placeholder="模型名称"
+                        value={changeModel.name}
+                        onChange={(e) => this.handleInputChange2(e, 'name')}
+                        style={{ marginBottom: 8 }}
+                    />
+                    <Input
+                        placeholder="标签"
+                        value={changeModel.detail}
+                        onChange={(e) => this.handleInputChange2(e, 'detail')}
+                        style={{ marginBottom: 8 }}
+                    />
+                    <Input
+                        placeholder="地址"
+                        value={changeModel.directory}
+                        onChange={(e) => this.handleInputChange2(e, 'directory')}
+                    />
+                    <input type="file" onChange={(e) => this.setState({ changeModel: { ...changeModel, image: e.target.files[0] } })} style={{ marginTop: 8 }} />
                 </Modal>
             </div>
         );
